@@ -1,0 +1,15 @@
+.drawing-container {
+    border: 1px gray solid;
+    display: inline-block;
+}
+
+.drawing {
+    width: 960px;
+    height: 500px;
+    padding: 0;
+    margin: 0;
+}
+
+.text {
+    width: 960px;
+}
