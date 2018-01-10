@@ -1,0 +1,6 @@
+[submodule "closest_point/svg.draggable.js"]
+	path = closest_point/svg.draggable.js
+	url = https://github.com/svgdotjs/svg.draggable.js.git
+[submodule "closest_point/svg.js"]
+	path = closest_point/svg.js
+	url = https://github.com/svgdotjs/svg.js.git
