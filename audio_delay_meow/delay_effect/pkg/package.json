@@ -1,0 +1,15 @@
+{
+  "name": "delay_effect",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "delay_effect_bg.wasm",
+    "delay_effect.js",
+    "delay_effect.d.ts"
+  ],
+  "main": "delay_effect.js",
+  "types": "delay_effect.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

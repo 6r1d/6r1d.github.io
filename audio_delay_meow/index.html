@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sound delay effect (Rust/WASM/AudioWorklet)</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <input type="range" id="delay_slider" min="1" max="128" value="16" step="1">
+        <button id="button-start" class="start-button" disabled>▶</button>
+    </div>
+    <audio id="my-audio" src="meow_mix.flac" preload="auto"></audio>
+    <script type="module">
+        window.addEventListener('load', () => {           
+            const buttonEl = document.getElementById('button-start');
+            const computeEl = document.getElementById('compute-el');
+            const delay_slider = document.getElementById('delay_slider');
+
+            const audioEl = document.getElementById('my-audio');
+            let audioContext;
+            let isModuleLoaded = false;
+            let isGraphReady = false;
+            let sourceNode;
+            let bypasser;
+
+            delay_slider.addEventListener('input', (event) => {
+                window.bypasser.port.postMessage({
+                    "type": 'update_offset',
+                    "offset": parseInt(event.target.value, 10) * 128
+                });
+            });
+
+            const loadGraph = async () => {
+                sourceNode = audioContext.createMediaElementSource(audioEl);
+                bypasser = new AudioWorkletNode(audioContext, 'delay_effect');
+                window.bypasser = bypasser;
+                const url = `delay_effect/pkg/delay_effect_bg.wasm?t=${new Date().getTime()}`;
+                const response = await window.fetch(url);
+                const wasmBytes = await response.arrayBuffer();
+                bypasser.port.postMessage({
+                    "type": 'wasm_module',
+                    "wasmBytes": wasmBytes
+                });
+                bypasser.port.onmessage = (event) => {
+                    console.log('Received from AudioWorklet:', event.data);
+                };
+                sourceNode.connect(bypasser).connect(audioContext.destination);
+            };
+
+
+            const startAudio = async () => {
+                if (!audioContext) {
+                    audioContext = new AudioContext();
+                }
+                if (!isModuleLoaded) {
+                    await audioContext.audioWorklet.addModule('delay_effect.js');
+                    isModuleLoaded = true;
+                }
+                if (!isGraphReady) {
+                    loadGraph();
+                    isGraphReady = true;
+                }
+            };
+
+            buttonEl.disabled = false;
+            buttonEl.addEventListener('click', async () => {
+                if (!audioContext) {
+                    audioContext = new AudioContext();
+                }
+                if (audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                if (!isModuleLoaded || !isGraphReady) {
+                    await startAudio();
+                }
+
+                if (audioEl.paused) {
+                    audioEl.play();
+                    buttonEl.textContent = '■';
+                } else {
+                    audioEl.pause();
+                    await audioContext.suspend();
+                    buttonEl.textContent = '▶';
+                }
+            });
+
+            audioEl.addEventListener('ended', () => {
+                buttonEl.textContent = '▶';
+            });
+        });
+    </script>
+</body>
+
+</html>
