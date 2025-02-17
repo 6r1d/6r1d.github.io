@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A (probably tasteless) FizzBuzz (t-shirt or whatever) generator</title>
+    <!-- You can figure things out later -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333333;
+            margin: 0;
+        }
+
+        #svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333333;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            background-color: #008CBA;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #005f7f;
+        }
+
+        button:active {
+            background-color: #003f5f;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="svg-container">
+        <div id="svgCanvas"></div>
+    </div>
+    <div class="button-container">
+        <button onclick="drawFizzBuzzPattern(true)">Geeky</button>
+        <button onclick="drawFizzBuzzPattern(false)">Bland</button>
+        <button onclick="downloadSVG()">Gimme</button>
+    </div>
+
+    <script>
+        const lookup = (n) =>
+            (n % 3 === 0 && n % 5 === 0) ? 'FizzBuzz' :
+            (n % 3 === 0) ? 'Fizz' :
+            (n % 5 === 0) ? 'Buzz' :
+            'Number';
+
+        const colorLookup = {
+            "FizzBuzz": "#7A9E9F",
+            "Fizz": "#B0B0B0",
+            "Buzz": "#888888",
+            "Number": "#555555"
+        };
+
+        function drawFizzBuzzPattern(showNumbers) {
+            const gridSize = 10;
+            const cellSize = 40;
+            const padding = 4;
+            const svgSize = gridSize * (cellSize + padding) - padding;
+            document.getElementById("svgCanvas").innerHTML = "";
+            const draw = SVG().addTo('#svgCanvas').size(svgSize, svgSize).id("fizzbuzzSVG");
+            let num = 1;
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    let type = lookup(num);
+                    let color = colorLookup[type];
+                    let x = col * (cellSize + padding);
+                    let y = row * (cellSize + padding);
+                    draw.rect(cellSize, cellSize)
+                        .attr({
+                            fill: color,
+                            rx: 10,
+                            ry: 10
+                        })
+                        .move(x, y);
+                    if (showNumbers) {
+                        draw.text(String(num))
+                            .font({
+                                size: 14,
+                                family: 'Arial',
+                                weight: 'bold',
+                                anchor: 'middle'
+                            })
+                            .fill("#ffffff")
+                            .center(x + cellSize / 2, y + cellSize / 2);
+                    }
+                    num++;
+                }
+            }
+        }
+
+        function downloadSVG() {
+            const svgElement = document.getElementById("fizzbuzzSVG");
+            if (!svgElement) {
+                alert("Generate a pattern first.");
+                return;
+            }
+            // Create the blob with SVG
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgElement);
+            const blob = new Blob([svgString], {
+                type: "image/svg+xml"
+            });
+            const url = URL.createObjectURL(blob);
+            // Download
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "fizzbuzz_shirt.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>
